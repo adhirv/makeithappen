@@ -230,6 +230,15 @@
         }
 
         // --- Google API Integration ---
+        function checkAndEnableGoogleButtons() {
+            if (gapiInited && gisInited && googleIntegrationEnabled) {
+                googleSignInBtn.disabled = false;
+                googleSignInBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                googleSignInBtn.title = "Sign in with your Google Account";
+                renderCurrentView(); // Re-render to enable import button if on contacts view
+            }
+        }
+
         window.onGapiLoaded = () => {
             if (!googleIntegrationEnabled) return;
             gapi.load('client', initializeGapiClient);
@@ -241,6 +250,7 @@
                 discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/people/v1/rest'],
             });
             gapiInited = true;
+            checkAndEnableGoogleButtons();
         }
 
         window.onGisLoaded = () => {
@@ -251,6 +261,7 @@
                 callback: '', // The callback is handled by the promise from requestAccessToken
             });
             gisInited = true;
+            checkAndEnableGoogleButtons();
         };
         
         function handleGoogleAuth() {
@@ -468,12 +479,16 @@
             
             const importBtn = document.getElementById('import-google-contacts-btn');
             if (importBtn) {
-                if (googleIntegrationEnabled) {
+                if (googleIntegrationEnabled && gapiInited && gisInited) {
                     importBtn.addEventListener('click', importGoogleContacts);
                 } else {
                     importBtn.disabled = true;
                     importBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                    importBtn.title = "Google integration is disabled. Please add API keys in the code.";
+                    if (!googleIntegrationEnabled) {
+                        importBtn.title = "Google integration is disabled. Please add API keys in the code.";
+                    } else {
+                        importBtn.title = "Google API is initializing...";
+                    }
                 }
             }
         }
@@ -566,8 +581,11 @@
             });
 
             // Google Sign In
+            googleSignInBtn.addEventListener('click', handleGoogleAuth);
             if (googleIntegrationEnabled) {
-                googleSignInBtn.addEventListener('click', handleGoogleAuth);
+                googleSignInBtn.disabled = true;
+                googleSignInBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                googleSignInBtn.title = "Google API is initializing...";
             } else {
                 googleSignInBtn.disabled = true;
                 googleSignInBtn.classList.add('opacity-50', 'cursor-not-allowed');
