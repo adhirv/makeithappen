@@ -134,19 +134,21 @@
 
         // --- App Configuration ---
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'gemini-crm-default';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        
+        // Firebase Configuration - Provided by user
+        const firebaseConfig = {
+          apiKey: "AIzaSyAbevSvSzMp_7YTAV1Ue5EmOv57lzMUwJs",
+          authDomain: "think-makeithappen.firebaseapp.com",
+          projectId: "think-makeithappen",
+          storageBucket: "think-makeithappen.appspot.com",
+          messagingSenderId: "1097376661701",
+          appId: "1:1097376661701:web:04c0d362617c94bc94f0ac"
+        };
 
         // --- Google API Configuration ---
         // ###################################################################################
         // # IMPORTANT: You must replace these placeholder values with your own credentials  #
         // # from the Google Cloud Console for the Google integration to work.               #
-        // #                                                                                 #
-        // # 1. Go to https://console.cloud.google.com/                                      #
-        // # 2. Create a new project.                                                        #
-        // # 3. In "APIs & Services", enable the "People API".                               #
-        // # 4. Go to "Credentials", create an "API Key" and a "OAuth 2.0 Client ID".        #
-        // #    - For the Client ID, choose "Web application".                               #
-        // #    - Add `http://localhost` and your production URL to Authorized JS origins.   #
         // ###################################################################################
         const GOOGLE_API_KEY = 'AIzaSyBxsJRIQVQMnMswwy5WcxlX2DZzupTL3-M'; 
         const GOOGLE_CLIENT_ID = '1097376661701-fn5nrsechri1l1tob6l2064ma6l27ck2.apps.googleusercontent.com';
@@ -186,7 +188,7 @@
             }
 
             // Firebase is essential. Stop if it's not configured.
-            if (!firebaseConfig) {
+            if (!firebaseConfig || !firebaseConfig.apiKey) {
                 document.body.innerHTML = `<div class="bg-red-800 text-white p-8 text-center h-screen flex items-center justify-center"><p><strong>Firebase Configuration is missing.</strong><br>The application cannot start without it.</p></div>`;
                 console.error("Firebase config is missing.");
                 return;
@@ -205,13 +207,14 @@
                         initializeAppUI();
                     } else {
                         try {
-                            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                                await signInWithCustomToken(auth, __initial_auth_token);
-                            } else {
-                                await signInAnonymously(auth);
-                            }
+                            // In a standalone app, you might want to implement a full auth flow.
+                            // For simplicity, we'll continue with anonymous sign-in.
+                            await signInAnonymously(auth);
                         } catch (error) {
                             console.error("Anonymous sign-in failed:", error);
+                            if (error.code === 'auth/configuration-not-found') {
+                                document.body.innerHTML = `<div class="bg-red-800 text-white p-8 text-center h-screen flex items-center justify-center"><p class="text-lg"><strong>Authentication Error</strong><br><br>Anonymous sign-in failed. Please go to your Firebase Console, select your project, go to Authentication > Sign-in method, and ensure the <strong>Anonymous</strong> provider is enabled.</p></div>`;
+                            }
                         }
                     }
                 });
